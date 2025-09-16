@@ -1,5 +1,7 @@
 import { Controller, Get, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { UserModule } from './User/user.module';
+import { PrismaModule } from './Prisma/prisma.module';
 
 @Controller()
 class RootController {
@@ -15,6 +17,8 @@ class RootController {
       isGlobal: true,
       envFilePath: '.env',
     }),
+    PrismaModule,
+    UserModule,
   ],
   controllers: [RootController],
 })
