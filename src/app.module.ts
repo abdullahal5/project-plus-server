@@ -2,6 +2,8 @@ import { Controller, Get, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './User/user.module';
 import { PrismaModule } from './Prisma/prisma.module';
+import { AuthModule } from './Auth/auth.module';
+import { CoreModule } from './core/core.module';
 
 @Controller()
 class RootController {
@@ -19,6 +21,8 @@ class RootController {
     }),
     PrismaModule,
     UserModule,
+    AuthModule,
+    CoreModule,
   ],
   controllers: [RootController],
 })
