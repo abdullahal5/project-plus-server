@@ -1,0 +1,68 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Project {
+  createdAt: DateTime!
+  createdBy: User
+  description: String
+  id: ID!
+  members: [User]
+  name: String!
+  tasks: [Task]
+  updatedAt: DateTime!
+}
+
+type Query {
+  projects: [Project!]!
+}
+
+type Task {
+  assignedTo: User
+  createdAt: DateTime!
+  dependencies: [Task]
+  dependentOn: [Task]
+  description: String
+  id: ID!
+  priority: TaskPriority!
+  project: Project
+  status: TaskStatus!
+  title: String!
+  updatedAt: DateTime!
+}
+
+"""Task priority from Prisma"""
+enum TaskPriority {
+  HIGH
+  LOW
+  MEDIUM
+}
+
+"""Task status from Prisma"""
+enum TaskStatus {
+  DONE
+  IN_PROGRESS
+  TODO
+}
+
+type User {
+  createdAt: DateTime!
+  email: String!
+  id: ID!
+  isActive: Boolean!
+  name: String!
+  role: UserRole!
+  updatedAt: DateTime!
+}
+
+"""User roles from Prisma"""
+enum UserRole {
+  ADMIN
+  MANAGER
+  MEMBER
+}

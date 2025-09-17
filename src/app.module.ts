@@ -4,6 +4,11 @@ import { UserModule } from './User/user.module';
 import { PrismaModule } from './Prisma/prisma.module';
 import { AuthModule } from './Auth/auth.module';
 import { CoreModule } from './core/core.module';
+import { ProjectModule } from './Project/project.module';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { join } from 'path';
+import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 
 @Controller()
 class RootController {
@@ -23,6 +28,16 @@ class RootController {
     UserModule,
     AuthModule,
     CoreModule,
+    ProjectModule,
+
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      sortSchema: true,
+      playground: false,
+      plugins: [ApolloServerPluginLandingPageLocalDefault()],
+      context: ({ req, res }) => ({ req, res }),
+    }),
   ],
   controllers: [RootController],
 })
