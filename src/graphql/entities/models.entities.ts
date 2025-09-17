@@ -56,7 +56,7 @@ export class Project {
   id: string;
 
   @Field()
-  name: string;
+  name?: string;
 
   @Field(() => String, { nullable: true })
   description?: string | null;
@@ -103,8 +103,8 @@ export class Task {
   @Field(() => Project, { nullable: true })
   project?: Project | null;
 
-  @Field(() => User, { nullable: true })
-  assignedTo?: User | null;
+  @Field(() => [User], { nullable: 'itemsAndList' })
+  assignedTo?: User[] | null;
 
   @Field(() => [Task], { nullable: 'itemsAndList' })
   dependencies?: Task[] | null;

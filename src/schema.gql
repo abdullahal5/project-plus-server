@@ -20,10 +20,11 @@ type Project {
 
 type Query {
   projects: [Project!]!
+  tasks: [Task!]!
 }
 
 type Task {
-  assignedTo: User
+  assignedTo: [User]
   createdAt: DateTime!
   dependencies: [Task]
   dependentOn: [Task]
