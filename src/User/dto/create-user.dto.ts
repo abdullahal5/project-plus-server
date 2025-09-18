@@ -1,11 +1,13 @@
 import {
   IsEmail,
   IsNotEmpty,
-  IsEnum,
   MinLength,
   IsString,
+  IsIn,
 } from 'class-validator';
 import { UserRole } from '@prisma/client';
+
+const UserRoles = Object.values(UserRole);
 
 export class CreateUserDto {
   @IsString({ message: 'Name must be a string' })
@@ -20,8 +22,6 @@ export class CreateUserDto {
   @MinLength(6, { message: 'Password must be at least 6 characters' })
   password: string;
 
-  @IsEnum(UserRole, {
-    message: 'Role must be either ADMIN, MANAGER, or MEMBER',
-  })
+  @IsIn(UserRoles, { message: 'Role must be ADMIN, MANAGER, or MEMBER' })
   role?: UserRole = UserRole.MEMBER;
 }

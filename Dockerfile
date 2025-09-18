@@ -1,23 +1,27 @@
-# Use official Node.js image
-FROM node:20-alpine
-
-# Set working directory
+FROM node:22 AS builder
 WORKDIR /app
 
-# Copy package.json and package-lock.json
 COPY package*.json ./
+RUN npm install
 
-# Install dependencies
-RUN npm install --production
+COPY prisma ./prisma
+RUN npx prisma generate
 
-# Copy source code
 COPY . .
-
-# Build TypeScript
 RUN npm run build
 
-# Expose port (adjust as needed)
+FROM node:22 AS runner
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install --only=production
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+
+COPY .env .env
+
 EXPOSE 5000
 
-# Start the server (production mode)
 CMD ["node", "dist/main.js"]
