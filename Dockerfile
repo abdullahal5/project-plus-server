@@ -1,3 +1,4 @@
+# Stage 1: Builder
 FROM node:22 AS builder
 WORKDIR /app
 
@@ -10,6 +11,7 @@ RUN npx prisma generate
 COPY . .
 RUN npm run build
 
+# Stage 2: Runner
 FROM node:22 AS runner
 WORKDIR /app
 
@@ -19,8 +21,6 @@ RUN npm install --only=production
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-
-COPY .env .env
 
 EXPOSE 5000
 
