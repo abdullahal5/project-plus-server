@@ -10,6 +10,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { TaskModule } from './Task/task.module';
+import { NotificationsModule } from './Notifications/notifications.module';
 
 @Controller()
 class RootController {
@@ -31,6 +32,7 @@ class RootController {
     CoreModule,
     ProjectModule,
     TaskModule,
+    NotificationsModule,
 
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,

@@ -2,16 +2,22 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/Prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
-import { UpdateTaskDto } from './dto/update-task.dto';
-import { Task } from '@prisma/client';
+import { UpdateTaskDto, UpdateTaskStatusDto } from './dto/update-task.dto';
+import { Task, User } from '@prisma/client';
+import { NotificationsService } from 'src/Notifications/notifications.service';
 
 @Injectable()
 export class TaskService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
+  // create
   async create(createTaskDto: CreateTaskDto) {
     const {
       assignedTo,
@@ -44,17 +50,22 @@ export class TaskService {
     let dependencyConnect;
     if (dependencies?.length) {
       const tasks = await this.prisma.task.findMany({
-        where: { id: { in: dependencies } },
+        where: {
+          id: { in: dependencies },
+          NOT: { status: 'DONE' },
+        },
       });
 
       if (tasks.length !== dependencies.length) {
-        throw new BadRequestException('One or more dependencies are invalid');
+        throw new BadRequestException(
+          'One or more dependencies are invalid or already completed',
+        );
       }
 
       dependencyConnect = dependencies.map((id) => ({ id }));
     }
 
-    return this.prisma.task.create({
+    const task = await this.prisma.task.create({
       data: {
         title,
         description,
@@ -71,6 +82,18 @@ export class TaskService {
         dependencies: true,
       },
     });
+
+    if (assignedTo?.length) {
+      for (const userId of assignedTo) {
+        await this.notificationsService.createNotification(
+          userId,
+          `You have been assigned a new task: ${title}`,
+          'TASK_ASSIGNED',
+        );
+      }
+    }
+
+    return task;
   }
 
   async findAll(): Promise<Task[]> {
@@ -90,6 +113,49 @@ export class TaskService {
     return task;
   }
 
+  // update status
+  async updateStatus(taskId: string, dto: UpdateTaskStatusDto, user: User) {
+    const task = await this.prisma.task.findUnique({
+      where: { id: taskId },
+      include: { assignedTo: true },
+    });
+    if (!task) throw new NotFoundException('Task not found');
+
+    const isAssigned = task.assignedTo.some((u) => u.id === user?.id);
+    const isAdmin = user.role === 'ADMIN';
+
+    if (!isAssigned && !isAdmin) {
+      throw new ForbiddenException('You are not allowed to update this task');
+    }
+
+    const updatedTask = await this.prisma.task.update({
+      where: { id: taskId },
+      data: { status: dto.status },
+      include: { assignedTo: true },
+    });
+
+    if (updatedTask.assignedTo?.length) {
+      for (const user of updatedTask.assignedTo) {
+        let message = `Task "${updatedTask.title}" status updated to ${dto.status}`;
+        let type: 'TASK_UPDATED' | 'TASK_COMPLETED' = 'TASK_UPDATED';
+
+        if (dto.status === 'DONE') {
+          message = `Task "${updatedTask.title}" has been completed 🎉`;
+          type = 'TASK_COMPLETED';
+        }
+
+        await this.notificationsService.createNotification(
+          user.id,
+          message,
+          type,
+        );
+      }
+    }
+
+    return updatedTask;
+  }
+
+  // update task
   async update(id: string, updateTaskDto: UpdateTaskDto) {
     const task = await this.prisma.task.findUnique({ where: { id } });
     if (!task) throw new NotFoundException('Task not found');
@@ -125,7 +191,7 @@ export class TaskService {
       dependencyConnect = dependencies.map((id) => ({ id }));
     }
 
-    return this.prisma.task.update({
+    const updatedTask = await this.prisma.task.update({
       where: { id },
       data: {
         ...rest,
@@ -140,11 +206,49 @@ export class TaskService {
         dependencies: true,
       },
     });
+
+    if (updatedTask.assignedTo?.length) {
+      for (const user of updatedTask.assignedTo) {
+        await this.notificationsService.createNotification(
+          user.id,
+          `Task "${updatedTask.title}" has been updated.`,
+          'TASK_UPDATED',
+        );
+      }
+    }
+
+    if (rest.status && rest.status === 'DONE') {
+      if (updatedTask.assignedTo?.length) {
+        for (const user of updatedTask.assignedTo) {
+          await this.notificationsService.createNotification(
+            user.id,
+            `Task "${updatedTask.title}" has been marked as completed.`,
+            'TASK_COMPLETED',
+          );
+        }
+      }
+    }
+
+    return updatedTask;
   }
 
+  // delete task
   async delete(id: string) {
-    const task = await this.prisma.task.findUnique({ where: { id } });
+    const task = await this.prisma.task.findUnique({
+      where: { id },
+      include: { assignedTo: true },
+    });
     if (!task) throw new NotFoundException('Task not found');
+
+    if (task.assignedTo?.length) {
+      for (const user of task.assignedTo) {
+        await this.notificationsService.createNotification(
+          user.id,
+          `Task "${task.title}" has been deleted.`,
+          'TASK_UPDATED',
+        );
+      }
+    }
 
     return this.prisma.task.delete({ where: { id } });
   }

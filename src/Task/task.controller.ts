@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
-import { UpdateTaskDto } from './dto/update-task.dto';
+import { UpdateTaskDto, UpdateTaskStatusDto } from './dto/update-task.dto';
 import { Roles } from 'src/Auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
@@ -26,7 +26,7 @@ export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Post('/')
-  @Roles(client.UserRole.ADMIN, client.UserRole.MANAGER)
+  @Roles(client.UserRole.ADMIN, client.UserRole.MANAGER, client.UserRole.MEMBER)
   @UseGuards(JwtAuthGuard, RolesGuard)
   async createTask(
     @Body() createTaskDto: CreateTaskDto,
@@ -64,6 +64,16 @@ export class TaskController {
       message: 'Task fetched successfully',
       data: task,
     });
+  }
+
+  @Patch('/status/:id')
+  @UseGuards(JwtAuthGuard)
+  async updateStatus(
+    @Param('id') id: string,
+    @GetUser() user: client.User,
+    @Body() dto: UpdateTaskStatusDto,
+  ) {
+    return this.taskService.updateStatus(id, dto, user);
   }
 
   @Patch(':id')
