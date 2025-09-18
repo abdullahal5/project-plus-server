@@ -1,4 +1,11 @@
-import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
+import {
+  ObjectType,
+  Field,
+  ID,
+  registerEnumType,
+  Int,
+  Float,
+} from '@nestjs/graphql';
 import {
   NotificationType as PrismaNotificationType,
   TaskPriority as PrismaTaskPriority,
@@ -132,4 +139,31 @@ export class Notification {
 
   @Field(() => User, { nullable: true })
   user?: User | null;
+}
+
+@ObjectType()
+export class ProjectAnalytics {
+  @Field()
+  name: string;
+
+  @Field(() => Int)
+  taskCount: number;
+}
+
+@ObjectType()
+export class AnalyticsReport {
+  @Field(() => Int)
+  activeUsers: number;
+
+  @Field(() => Float)
+  avgTaskCompletionRate: number;
+
+  @Field(() => Float)
+  avgTimeSpentHours: number;
+
+  @Field(() => Int)
+  totalProjects: number;
+
+  @Field(() => [ProjectAnalytics], { nullable: 'itemsAndList' })
+  projects?: ProjectAnalytics[];
 }

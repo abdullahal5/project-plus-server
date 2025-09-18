@@ -11,6 +11,8 @@ import { join } from 'path';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { TaskModule } from './Task/task.module';
 import { NotificationsModule } from './Notifications/notifications.module';
+import { ReportsModule } from './Reports/reports.module';
+import { SearchModule } from './Search/search.module';
 
 @Controller()
 class RootController {
@@ -33,6 +35,8 @@ class RootController {
     ProjectModule,
     TaskModule,
     NotificationsModule,
+    ReportsModule,
+    SearchModule,
 
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,

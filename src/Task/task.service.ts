@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Injectable,
   NotFoundException,
@@ -9,13 +10,26 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto, UpdateTaskStatusDto } from './dto/update-task.dto';
 import { Task, User } from '@prisma/client';
 import { NotificationsService } from 'src/Notifications/notifications.service';
+import { SearchService } from 'src/Search/search.service';
 
 @Injectable()
 export class TaskService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
-  ) {}
+    private readonly searchService: SearchService,
+  ) {
+    this.initIndex();
+  }
+
+  private async initIndex() {
+    try {
+      await this.searchService.createIndex('tasks');
+      console.log('Elasticsearch tasks index ready');
+    } catch (error) {
+      console.error('Error creating Elasticsearch index:', error);
+    }
+  }
 
   // create
   async create(createTaskDto: CreateTaskDto) {
@@ -34,6 +48,29 @@ export class TaskService {
     });
     if (!project) throw new NotFoundException('Project not found');
 
+    // Check dependencies first
+    let dependencyConnect;
+    if (dependencies?.length) {
+      const tasks = await this.prisma.task.findMany({
+        where: { id: { in: dependencies } },
+      });
+
+      if (tasks.length !== dependencies.length) {
+        throw new BadRequestException('One or more dependencies are invalid');
+      }
+
+      // Check if any dependency is not DONE
+      const incompleteDeps = tasks.filter((t) => t.status !== 'DONE');
+      if (incompleteDeps.length > 0 && assignedTo?.length) {
+        throw new BadRequestException(
+          'Cannot assign task because one or more dependencies are not completed',
+        );
+      }
+
+      dependencyConnect = dependencies.map((id) => ({ id }));
+    }
+
+    // Check assigned users
     let assigneeConnect;
     if (assignedTo?.length) {
       const users = await this.prisma.user.findMany({
@@ -47,24 +84,7 @@ export class TaskService {
       assigneeConnect = assignedTo.map((id) => ({ id }));
     }
 
-    let dependencyConnect;
-    if (dependencies?.length) {
-      const tasks = await this.prisma.task.findMany({
-        where: {
-          id: { in: dependencies },
-          NOT: { status: 'DONE' },
-        },
-      });
-
-      if (tasks.length !== dependencies.length) {
-        throw new BadRequestException(
-          'One or more dependencies are invalid or already completed',
-        );
-      }
-
-      dependencyConnect = dependencies.map((id) => ({ id }));
-    }
-
+    // Create task
     const task = await this.prisma.task.create({
       data: {
         title,
@@ -93,16 +113,64 @@ export class TaskService {
       }
     }
 
+    await this.searchService.indexDocument(
+      'tasks',
+      { title: task.title, description: task.description || '' },
+      task.id,
+    );
+
     return task;
   }
 
-  async findAll(): Promise<Task[]> {
+  async findAll(query?: string): Promise<Task[]> {
+    if (query) {
+      const results = await this.searchService.search('tasks', query);
+      const taskIds = results
+        .map((r) => r.id)
+        .filter((id): id is string => !!id);
+
+      return this.prisma.task.findMany({
+        where: { id: { in: taskIds } },
+        include: {
+          project: true,
+          assignedTo: true,
+          dependencies: true,
+          dependentOn: true,
+        },
+        orderBy: { priority: 'desc' },
+      });
+    }
+
     return this.prisma.task.findMany({
       include: {
         project: true,
         assignedTo: true,
         dependencies: true,
         dependentOn: true,
+      },
+      orderBy: { priority: 'desc' },
+    });
+  }
+
+  async fetchMyAssignedTasks(user: User, query?: string): Promise<Task[]> {
+    if (query) {
+      const results = await this.searchService.search('tasks', query);
+    }
+
+    return this.prisma.task.findMany({
+      where: {
+        assignedTo: {
+          some: { id: user.id },
+        },
+      },
+      include: {
+        project: true,
+        assignedTo: true,
+        dependencies: true,
+        dependentOn: true,
+      },
+      orderBy: {
+        priority: 'desc',
       },
     });
   }
@@ -128,14 +196,20 @@ export class TaskService {
       throw new ForbiddenException('You are not allowed to update this task');
     }
 
+    const data: any = { status: dto.status };
+    if (dto.status === 'DONE') {
+      const diffMs = new Date().getTime() - task.createdAt.getTime();
+      data.timeSpentHours = parseFloat((diffMs / (1000 * 60 * 60)).toFixed(2));
+    }
+
     const updatedTask = await this.prisma.task.update({
       where: { id: taskId },
-      data: { status: dto.status },
+      data,
       include: { assignedTo: true },
     });
 
     if (updatedTask.assignedTo?.length) {
-      for (const user of updatedTask.assignedTo) {
+      for (const assignedUser of updatedTask.assignedTo) {
         let message = `Task "${updatedTask.title}" status updated to ${dto.status}`;
         let type: 'TASK_UPDATED' | 'TASK_COMPLETED' = 'TASK_UPDATED';
 
@@ -145,12 +219,18 @@ export class TaskService {
         }
 
         await this.notificationsService.createNotification(
-          user.id,
+          assignedUser.id,
           message,
           type,
         );
       }
     }
+
+    await this.searchService.indexDocument(
+      'tasks',
+      { title: updatedTask.title, description: updatedTask.description || '' },
+      updatedTask.id,
+    );
 
     return updatedTask;
   }
@@ -249,6 +329,8 @@ export class TaskService {
         );
       }
     }
+
+    await this.searchService.deleteDocument('tasks', id);
 
     return this.prisma.task.delete({ where: { id } });
   }
