@@ -1,0 +1,1020 @@
+{
+	"info": {
+		"_postman_id": "600411f0-5807-40bc-a90d-e04cc3e21374",
+		"name": "project-plus",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31708605"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Create user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"member mia\",\r\n  \"email\": \"member@gmail.com\",\r\n  \"password\": \"123456\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/users/register",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"users",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Users",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{MANAGER_TOKEN}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/users",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single User",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/users/ee7e99fb-1b7b-4221-b1b9-c56b19c94290",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"users",
+								"ee7e99fb-1b7b-4221-b1b9-c56b19c94290"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update a user",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{MEMBER_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"John Doe 1 updated\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/users/ee7e99fb-1b7b-4221-b1b9-c56b19c94290",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"users",
+								"ee7e99fb-1b7b-4221-b1b9-c56b19c94290"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Toggle user status (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/users/19a2bc30-3e9d-4ce8-ad26-a0715cb167fb/toggle-active",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"users",
+								"19a2bc30-3e9d-4ce8-ad26-a0715cb167fb",
+								"toggle-active"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"John Doe 1\",\r\n  \"email\": \"john1@example.com\",\r\n  \"password\": \"123456\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/users/668b63a1-e964-43cc-8e55-b8310f77f337",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"users",
+								"668b63a1-e964-43cc-8e55-b8310f77f337"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();\r",
+									"\r",
+									"if (response.success && response.data && response.data.accessToken) {\r",
+									"    if (response.data.role === \"ADMIN\") {\r",
+									"        pm.collectionVariables.set(\"ADMIN_TOKEN\", `Bearer ${response.data.accessToken}`);\r",
+									"    } else if (response.data.role === \"MANAGER\") {\r",
+									"        pm.collectionVariables.set(\"MANAGER_TOKEN\", `Bearer ${response.data.accessToken}`);\r",
+									"    } else {\r",
+									"        pm.collectionVariables.set(\"MEMBER_TOKEN\", `Bearer ${response.data.accessToken}`);\r",
+									"    }\r",
+									"} else {\r",
+									"    console.warn(\"Login failed or role mismatch. Token not set.\");\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"member@gmail.com\",\r\n    \"password\": \"123456\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/auth/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();\r",
+									"\r",
+									"if (response.success && response.data && response.data.accessToken) {\r",
+									"    const token = `Bearer ${response.data.accessToken}`;\r",
+									"    const role = response.data.role;\r",
+									"\r",
+									"    switch (role) {\r",
+									"        case \"ADMIN\":\r",
+									"            pm.collectionVariables.set(\"ADMIN_TOKEN\", token);\r",
+									"            console.log(\"ADMIN token set\");\r",
+									"            break;\r",
+									"        case \"MANAGER\":\r",
+									"            pm.collectionVariables.set(\"MANAGER_TOKEN\", token);\r",
+									"            console.log(\"MANAGER token set\");\r",
+									"            break;\r",
+									"        case \"MEMBER\":\r",
+									"            pm.collectionVariables.set(\"MEMBER_TOKEN\", token);\r",
+									"            console.log(\"MEMBER token set\");\r",
+									"            break;\r",
+									"        default:\r",
+									"            console.warn(\"Unknown role. Token not set.\");\r",
+									"    }\r",
+									"} else {\r",
+									"    console.warn(\"Login/Refresh failed. Token not set.\");\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/auth/refresh-token",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"refresh-token"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Project",
+			"item": [
+				{
+					"name": "Create project",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"web development\",\r\n    \"description\": \"usa client web development projects\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/projects",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"projects"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all project (graphql)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{MEMBER_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\r\n  projects (q: \"projects\") {\r\n    id\r\n    name\r\n    description\r\n    tasks {\r\n        id\r\n        assignedTo {\r\n            name\r\n        }\r\n    }\r\n  }\r\n}\r\n",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/graphql",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single project",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{MEMBER_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/projects/605158ce-7aec-47fe-bfe7-afb6a1f7060e",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"projects",
+								"605158ce-7aec-47fe-bfe7-afb6a1f7060e"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update project",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"hello updated\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/projects/876b29eb-685e-479a-b3f9-eb11a15f0318",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"projects",
+								"876b29eb-685e-479a-b3f9-eb11a15f0318"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete project",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/projects/876b29eb-685e-479a-b3f9-eb11a15f0318",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"projects",
+								"876b29eb-685e-479a-b3f9-eb11a15f0318"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tasks",
+			"item": [
+				{
+					"name": "create task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Implement role-based access control\",\r\n    \"description\": \"Setup roles, permissions, and JWT-based access control\",\r\n    \"projectId\": \"1d4fa8df-7823-49a9-ac76-13c166190c9a\",\r\n    \"requiredSkills\": [\r\n        \"NestJS\",\r\n        \"JWT\",\r\n        \"PostgreSQL\"\r\n    ],\r\n    \"autoAssign\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/tasks",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All task (Graphql)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\r\n  tasks {\r\n    id\r\n    title\r\n    status\r\n    priority\r\n  }\r\n}\r\n",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/graphql",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get my task (Graphql)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{MEMBER_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\r\n  tasks {\r\n    id\r\n    title\r\n    description\r\n  }\r\n}\r\n",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/graphql",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"graphql"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get single",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query GetProjects {\r\n  projects {\r\n    id\r\n    name\r\n    description\r\n    createdAt\r\n    updatedAt\r\n    tasks {\r\n      id\r\n      title\r\n      description\r\n      priority\r\n      status\r\n      createdAt\r\n      updatedAt\r\n    }\r\n  }\r\n}\r\n",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/tasks/b2fc7300-6acd-4116-9815-8e4a85930507",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"tasks",
+								"b2fc7300-6acd-4116-9815-8e4a85930507"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update a task status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Authorization",
+								"value": "{{MEMBER_TOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{MANAGER_TOKEN}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"status\": \"DONE\" // [TODO, IN_PROGRESS, DONE]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/tasks/status/f3a3d578-b6ca-4927-9d1a-207fb6e5ea68",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"tasks",
+								"status",
+								"f3a3d578-b6ca-4927-9d1a-207fb6e5ea68"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update task",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{MEMBER_TOKEN}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Authorization",
+								"value": "{{MANAGER_TOKEN}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"notification task updated\",\r\n    \"description\": \"Create login, signup, and JWT token handling for users\",\r\n    \"priority\": \"MEDIUM\", // [LOW, MEDIUM, HIGH]\r\n    \"status\": \"TODO\", // [TODO, IN_PROGRESS, DONE]\r\n    \"assignedTo\": [\r\n        \"69ab52ae-d754-4d36-bf60-d93bbecc80af\"\r\n    ],\r\n    \"projectId\": \"605158ce-7aec-47fe-bfe7-afb6a1f7060e\",\r\n    \"dependencies\": [\r\n        \"774970eb-49ee-4e2f-89e2-ca36d3e9c86c\",\r\n        \"96882660-e4f5-46ff-994a-6f2c9aa434c3\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/tasks/2fbf57ec-3865-4f43-b5f9-332d407aa9d1",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"tasks",
+								"2fbf57ec-3865-4f43-b5f9-332d407aa9d1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete task",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query GetProjects {\r\n  projects {\r\n    id\r\n    name\r\n    description\r\n    createdAt\r\n    updatedAt\r\n    tasks {\r\n      id\r\n      title\r\n      description\r\n      priority\r\n      status\r\n      createdAt\r\n      updatedAt\r\n    }\r\n  }\r\n}\r\n",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/tasks/b2fc7300-6acd-4116-9815-8e4a85930507",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"tasks",
+								"b2fc7300-6acd-4116-9815-8e4a85930507"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Create Notification",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userId\": \"69ab52ae-d754-4d36-bf60-d93bbecc80af\",\r\n    \"message\": \"Hello! There is your new task !!!\",\r\n    \"type\": \"TASK_ASSIGNED\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/notifications",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"notifications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all my notifications",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Authorization",
+								"value": "{{MEMBER_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/notifications",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"notifications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Read a notification",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Authorization",
+								"value": "{{MEMBER_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/notifications/a9d42c3e-761c-49b6-860c-19809bd48c56/read",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"notifications",
+								"a9d42c3e-761c-49b6-860c-19809bd48c56",
+								"read"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Read all notifications",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Authorization",
+								"value": "{{MEMBER_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/notifications/read-all",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"notifications",
+								"read-all"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Reports and Analytics",
+			"item": [
+				{
+					"name": "Reports and Analytics",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Authorization",
+								"value": "{{MEMBER_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query Reports {\r\n    analyticsReport {\r\n        activeUsers\r\n        avgTaskCompletionRate\r\n        avgTimeSpentHours\r\n        totalProjects\r\n    }\r\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/graphql",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "https://project-plus-server-production.up.railway.app/api",
+			"disabled": true
+		},
+		{
+			"key": "BASE_URL",
+			"value": "http://localhost:5000/api"
+		},
+		{
+			"key": "ADMIN_TOKEN",
+			"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjNlN2E2YTI5LTk2ODgtNDcxNS1hYmVlLWRjNjliZGQ1MmMwYSIsImVtYWlsIjoiam9obkBleGFtcGxlLmNvbSIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc1ODA5MjM2MywiZXhwIjoxNzU4MDkzMjYzfQ.oMTWKmnxeOONGkdAG2_I1G4cBTHNb4qpXIsBwIpG7vA"
+		},
+		{
+			"key": "MEMBER_TOKEN",
+			"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlN2U5OWZiLTFiN2ItNDIyMS1iMWI5LWM1NmIxOWM5NDI5MCIsImVtYWlsIjoiam9objFAZXhhbXBsZS5jb20iLCJyb2xlIjoiTUVNQkVSIiwiaWF0IjoxNzU4MDkyNDg5LCJleHAiOjE3NTgwOTMzODl9.NAjV8Mbr9OWGtg7P3U6c4dGiY5sh9e3V0-r_F7aBedI"
+		},
+		{
+			"key": "MANAGER_TOKEN",
+			"value": "s"
+		}
+	]
+}
