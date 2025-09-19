@@ -34,7 +34,7 @@ type ProjectAnalytics {
 type Query {
   analyticsReport: AnalyticsReport!
   myAssignedTasks(q: String): [Task!]!
-  projects: [Project!]!
+  projects(q: String): [Project!]!
   tasks(q: String): [Task!]!
 }
 

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   Injectable,
   NotFoundException,
@@ -155,6 +156,25 @@ export class TaskService {
   async fetchMyAssignedTasks(user: User, query?: string): Promise<Task[]> {
     if (query) {
       const results = await this.searchService.search('tasks', query);
+      const taskIds = results
+        .map((r) => r.id)
+        .filter((id): id is string => !!id);
+
+      return this.prisma.task.findMany({
+        where: {
+          id: { in: taskIds },
+          assignedTo: {
+            some: { id: user.id },
+          },
+        },
+        include: {
+          project: true,
+          assignedTo: true,
+          dependencies: true,
+          dependentOn: true,
+        },
+        orderBy: { priority: 'desc' },
+      });
     }
 
     return this.prisma.task.findMany({

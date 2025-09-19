@@ -1,4 +1,4 @@
-import { Query, Resolver } from '@nestjs/graphql';
+import { Args, Query, Resolver } from '@nestjs/graphql';
 import { Project } from 'src/graphql/entities/models.entities';
 import { ProjectService } from './project.service';
 import { UseGuards } from '@nestjs/common';
@@ -10,7 +10,9 @@ export class ProjectResolver {
 
   @Query(() => [Project])
   @UseGuards(GqlAuthGuard)
-  async projects(): Promise<Project[]> {
-    return this.projectService.getAllProjects();
+  async projects(
+    @Args('q', { nullable: true }) query?: string,
+  ): Promise<Project[]> {
+    return this.projectService.getAllProjects(query);
   }
 }
