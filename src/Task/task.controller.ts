@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
-import { CreateTaskDto } from './dto/create-task.dto';
+import { AssignTaskDto, CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto, UpdateTaskStatusDto } from './dto/update-task.dto';
 import { Roles } from 'src/Auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
@@ -26,7 +26,7 @@ export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Post('/')
-  @Roles(client.UserRole.ADMIN, client.UserRole.MANAGER, client.UserRole.MEMBER)
+  @Roles(client.UserRole.ADMIN, client.UserRole.MANAGER)
   @UseGuards(JwtAuthGuard, RolesGuard)
   async createTask(
     @Body() createTaskDto: CreateTaskDto,
@@ -38,6 +38,23 @@ export class TaskController {
       statusCode: HttpStatus.CREATED,
       success: true,
       message: 'Task created successfully',
+      data: task,
+    });
+  }
+
+  @Post('/assign')
+  @Roles(client.UserRole.ADMIN, client.UserRole.MANAGER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async assignTask(
+    @Body() assignTaskDto: AssignTaskDto,
+    @GetUser() user: client.User,
+    @Res() res: Response,
+  ) {
+    const task = await this.taskService.assignATask(assignTaskDto);
+    return sendResponse(res, {
+      statusCode: HttpStatus.CREATED,
+      success: true,
+      message: 'Task assigned successfully',
       data: task,
     });
   }

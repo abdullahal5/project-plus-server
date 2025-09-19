@@ -1,5 +1,5 @@
 generator client {
-  provider      = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -21,6 +21,9 @@ model User {
   tasks           Task[]         @relation("TaskAssignees")
   notifications   Notification[]
   createdProjects Project[]      @relation("ProjectCreator")
+
+  skills   String[]
+  workload     Int     @default(0)
 }
 
 model Project {
@@ -54,6 +57,8 @@ model Task {
 
   dependencies Task[] @relation("TaskDependencies")
   dependentOn  Task[] @relation("TaskDependencies")
+
+  requiredSkills String[]
 }
 
 model Notification {

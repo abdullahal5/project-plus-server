@@ -20,6 +20,8 @@ CREATE TABLE "public"."User" (
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "skills" TEXT[],
+    "workload" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -47,6 +49,7 @@ CREATE TABLE "public"."Task" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "projectId" TEXT NOT NULL,
+    "requiredSkills" TEXT[],
 
     CONSTRAINT "Task_pkey" PRIMARY KEY ("id")
 );

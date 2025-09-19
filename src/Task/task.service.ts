@@ -1,13 +1,15 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
   ForbiddenException,
+  HttpException,
+  HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/Prisma/prisma.service';
-import { CreateTaskDto } from './dto/create-task.dto';
+import { AssignTaskDto, CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto, UpdateTaskStatusDto } from './dto/update-task.dto';
 import { Task, User } from '@prisma/client';
 import { NotificationsService } from 'src/Notifications/notifications.service';
@@ -32,95 +34,113 @@ export class TaskService {
     }
   }
 
-  // create
+  // create intial task
   async create(createTaskDto: CreateTaskDto) {
-    const {
-      assignedTo,
-      dependencies,
-      projectId,
-      title,
-      description,
-      priority,
-      status,
-    } = createTaskDto;
+    const { title, projectId, description, requiredSkills, autoAssign } =
+      createTaskDto;
 
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
-    });
-    if (!project) throw new NotFoundException('Project not found');
-
-    // Check dependencies first
-    let dependencyConnect;
-    if (dependencies?.length) {
-      const tasks = await this.prisma.task.findMany({
-        where: { id: { in: dependencies } },
-      });
-
-      if (tasks.length !== dependencies.length) {
-        throw new BadRequestException('One or more dependencies are invalid');
-      }
-
-      // Check if any dependency is not DONE
-      const incompleteDeps = tasks.filter((t) => t.status !== 'DONE');
-      if (incompleteDeps.length > 0 && assignedTo?.length) {
-        throw new BadRequestException(
-          'Cannot assign task because one or more dependencies are not completed',
-        );
-      }
-
-      dependencyConnect = dependencies.map((id) => ({ id }));
-    }
-
-    // Check assigned users
-    let assigneeConnect;
-    if (assignedTo?.length) {
-      const users = await this.prisma.user.findMany({
-        where: { id: { in: assignedTo } },
-      });
-
-      if (users.length !== assignedTo.length) {
-        throw new NotFoundException('One or more assignees not found');
-      }
-
-      assigneeConnect = assignedTo.map((id) => ({ id }));
-    }
-
-    // Create task
     const task = await this.prisma.task.create({
       data: {
         title,
-        description,
-        status,
-        priority,
         projectId,
-        assignedTo: assigneeConnect ? { connect: assigneeConnect } : undefined,
-        dependencies: dependencyConnect
-          ? { connect: dependencyConnect }
+        description: description || null,
+        requiredSkills: requiredSkills || [],
+      },
+    });
+
+    // Index the task in Elasticsearch
+    await this.searchService.indexDocument(
+      'tasks',
+      {
+        title: task.title,
+        description: task.description || '',
+      },
+      task.id,
+    );
+
+    // Choose best user to assign the task
+    if (autoAssign) {
+      const users = await this.prisma.user.findMany({
+        where: {
+          skills: { hasSome: requiredSkills || [] },
+          isActive: true,
+        },
+        orderBy: { workload: 'asc' },
+      });
+
+      const assignedUserIds = users.map((u) => u.id).slice(0, 1);
+
+      if (assignedUserIds.length > 0) {
+        await this.assignATask({
+          taskId: task.id,
+          assignedTo: assignedUserIds,
+          dependencies: [],
+        });
+      }
+    }
+
+    return task;
+  }
+
+  // assign a task to a user
+  async assignATask(assignTaskDto: AssignTaskDto) {
+    const { taskId, assignedTo, dependencies } = assignTaskDto;
+
+    const task = await this.prisma.task.findUnique({
+      where: { id: taskId },
+      include: {
+        dependencies: {
+          include: {
+            assignedTo: true,
+          },
+        },
+      },
+    });
+
+    if (!task) {
+      throw new HttpException('Task not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Check if dependencies are done for each user
+    for (const userId of assignedTo) {
+      for (const dep of task.dependencies) {
+        const userAssignedToDep = dep.assignedTo.some((u) => u.id === userId);
+        if (userAssignedToDep && dep.status !== 'DONE') {
+          throw new HttpException(
+            `User with id ${userId} cannot be assigned because dependency "${dep.title}" is not done`,
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+    }
+
+    const updatedTask = await this.prisma.task.update({
+      where: { id: taskId },
+      data: {
+        assignedTo: {
+          connect: assignedTo.map((id) => ({ id })),
+        },
+        dependencies: dependencies
+          ? { connect: dependencies.map((depId) => ({ id: depId })) }
           : undefined,
       },
       include: {
         assignedTo: true,
         dependencies: true,
+        project: true,
       },
     });
 
-    if (assignedTo?.length) {
-      for (const userId of assignedTo) {
-        await this.notificationsService.createNotification(
-          userId,
-          `You have been assigned a new task: ${title}`,
-          'TASK_ASSIGNED',
-        );
-      }
+    // Send notifications to assigned users
+    for (const user of updatedTask.assignedTo) {
+      await this.notificationsService.createNotification(
+        user.id,
+        `You have been assigned a new task: ${updatedTask.title}`,
+        'TASK_ASSIGNED',
+      );
     }
 
-    await this.searchService.indexDocument(
-      'tasks',
-      { title: task.title, description: task.description || '' },
-      task.id,
-    );
-
-    return task;
+    return updatedTask;
   }
 
   async findAll(query?: string): Promise<Task[]> {
@@ -257,10 +277,26 @@ export class TaskService {
 
   // update task
   async update(id: string, updateTaskDto: UpdateTaskDto) {
-    const task = await this.prisma.task.findUnique({ where: { id } });
-    if (!task) throw new NotFoundException('Task not found');
+    const {
+      title,
+      description,
+      projectId,
+      requiredSkills,
+      assignedTo,
+      dependencies,
+      autoAssign,
+      status,
+      priority,
+    } = updateTaskDto;
 
-    const { assignedTo, dependencies, projectId, ...rest } = updateTaskDto;
+    const task = await this.prisma.task.findUnique({
+      where: { id },
+      include: {
+        dependencies: { include: { assignedTo: true } },
+        assignedTo: true,
+      },
+    });
+    if (!task) throw new NotFoundException('Task not found');
 
     if (projectId) {
       const project = await this.prisma.project.findUnique({
@@ -269,6 +305,7 @@ export class TaskService {
       if (!project) throw new NotFoundException('Project not found');
     }
 
+    // Check assigned users if provided
     let assigneeConnect;
     if (assignedTo?.length) {
       const users = await this.prisma.user.findMany({
@@ -277,6 +314,19 @@ export class TaskService {
       if (users.length !== assignedTo.length) {
         throw new BadRequestException('One or more assignees are invalid');
       }
+
+      // Check dependency completion for each user
+      for (const userId of assignedTo) {
+        for (const dep of task.dependencies) {
+          const userAssignedToDep = dep.assignedTo.some((u) => u.id === userId);
+          if (userAssignedToDep && dep.status !== 'DONE') {
+            throw new BadRequestException(
+              `User with id ${userId} cannot be assigned because dependency "${dep.title}" is not done`,
+            );
+          }
+        }
+      }
+
       assigneeConnect = assignedTo.map((id) => ({ id }));
     }
 
@@ -291,11 +341,16 @@ export class TaskService {
       dependencyConnect = dependencies.map((id) => ({ id }));
     }
 
+    // Update the task
     const updatedTask = await this.prisma.task.update({
       where: { id },
       data: {
-        ...rest,
+        title: title ?? undefined,
+        description: description ?? undefined,
         projectId: projectId ?? undefined,
+        priority: priority ?? undefined,
+        status: status ?? undefined,
+        requiredSkills: requiredSkills ?? undefined,
         assignedTo: assigneeConnect ? { set: assigneeConnect } : undefined,
         dependencies: dependencyConnect
           ? { set: dependencyConnect }
@@ -304,30 +359,50 @@ export class TaskService {
       include: {
         assignedTo: true,
         dependencies: true,
+        project: true,
       },
     });
 
-    if (updatedTask.assignedTo?.length) {
+    for (const user of updatedTask.assignedTo) {
+      await this.notificationsService.createNotification(
+        user.id,
+        `Task "${updatedTask.title}" has been updated.`,
+        'TASK_UPDATED',
+      );
+    }
+
+    if (status === 'DONE') {
       for (const user of updatedTask.assignedTo) {
         await this.notificationsService.createNotification(
           user.id,
-          `Task "${updatedTask.title}" has been updated.`,
-          'TASK_UPDATED',
+          `Task "${updatedTask.title}" has been completed 🎉`,
+          'TASK_COMPLETED',
         );
       }
     }
 
-    if (rest.status && rest.status === 'DONE') {
-      if (updatedTask.assignedTo?.length) {
-        for (const user of updatedTask.assignedTo) {
-          await this.notificationsService.createNotification(
-            user.id,
-            `Task "${updatedTask.title}" has been marked as completed.`,
-            'TASK_COMPLETED',
-          );
-        }
+    if (autoAssign && requiredSkills?.length) {
+      const users = await this.prisma.user.findMany({
+        where: { skills: { hasSome: requiredSkills }, isActive: true },
+        orderBy: { workload: 'asc' },
+      });
+      const assignedUserIds = users.map((u) => u.id).slice(0, 1);
+
+      if (assignedUserIds.length > 0) {
+        await this.assignATask({
+          taskId: updatedTask.id,
+          assignedTo: assignedUserIds,
+          dependencies: dependencies ?? [],
+        });
       }
     }
+
+    // Update Elasticsearch index
+    await this.searchService.indexDocument(
+      'tasks',
+      { title: updatedTask.title, description: updatedTask.description || '' },
+      updatedTask.id,
+    );
 
     return updatedTask;
   }

@@ -55,6 +55,12 @@ export class User {
 
   @Field()
   updatedAt: Date;
+
+  @Field(() => [String], { nullable: 'itemsAndList' })
+  skills?: string[]; // ✅ added skills field
+
+  @Field(() => Int)
+  workload: number;
 }
 
 @ObjectType()
@@ -101,6 +107,9 @@ export class Task {
   @Field(() => PrismaTaskPriority)
   priority: PrismaTaskPriority;
 
+  @Field(() => Float, { nullable: true })
+  timeSpentHours: number | null;
+
   @Field()
   createdAt: Date;
 
@@ -118,6 +127,9 @@ export class Task {
 
   @Field(() => [Task], { nullable: 'itemsAndList' })
   dependentOn?: Task[] | null;
+
+  @Field(() => [String], { nullable: 'itemsAndList' })
+  requiredSkills?: string[];
 }
 
 @ObjectType()

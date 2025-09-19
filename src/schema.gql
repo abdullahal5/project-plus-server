@@ -47,7 +47,9 @@ type Task {
   id: ID!
   priority: TaskPriority!
   project: Project
+  requiredSkills: [String]
   status: TaskStatus!
+  timeSpentHours: Float
   title: String!
   updatedAt: DateTime!
 }
@@ -73,7 +75,9 @@ type User {
   isActive: Boolean!
   name: String!
   role: UserRole!
+  skills: [String]
   updatedAt: DateTime!
+  workload: Int!
 }
 
 """User roles from Prisma"""
