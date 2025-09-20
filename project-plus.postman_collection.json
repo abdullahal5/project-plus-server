@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"name\": \"member mia\",\r\n  \"email\": \"member@gmail.com\",\r\n  \"password\": \"123456\"\r\n}\r\n",
+							"raw": "{\r\n  \"name\": \"manager mia\",\r\n  \"email\": \"manager@gmail.com\",\r\n  \"password\": \"123456\",\r\n  \"role\": \"MANAGER\"\r\n}\r\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -385,7 +385,7 @@
 						"body": {
 							"mode": "graphql",
 							"graphql": {
-								"query": "query {\r\n  projects (q: \"projects\") {\r\n    id\r\n    name\r\n    description\r\n    tasks {\r\n        id\r\n        assignedTo {\r\n            name\r\n        }\r\n    }\r\n  }\r\n}\r\n",
+								"query": "query {\r\n  projects {\r\n    id\r\n    name\r\n    description\r\n    tasks {\r\n        id\r\n        assignedTo {\r\n            name\r\n        }\r\n    }\r\n  }\r\n}\r\n",
 								"variables": ""
 							}
 						},
@@ -523,7 +523,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Implement role-based access control\",\r\n    \"description\": \"Setup roles, permissions, and JWT-based access control\",\r\n    \"projectId\": \"1d4fa8df-7823-49a9-ac76-13c166190c9a\",\r\n    \"requiredSkills\": [\r\n        \"NestJS\",\r\n        \"JWT\",\r\n        \"PostgreSQL\"\r\n    ],\r\n    \"autoAssign\": true\r\n}",
+							"raw": "{\r\n    \"title\": \"Implement role-based access control\",\r\n    \"description\": \"Setup roles, permissions, and JWT-based access control\",\r\n    \"projectId\": \"327c114a-87f0-4abe-a80c-89ea39353b67\",\r\n    \"requiredSkills\": [\r\n        \"NestJS\",\r\n        \"JWT\",\r\n        \"PostgreSQL\"\r\n    ],\r\n    \"autoAssign\": true\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -537,6 +537,39 @@
 							],
 							"path": [
 								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{ADMIN_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"taskId\": \"66bb39f9-5902-48d4-afd3-7b2cb2810c58\",\r\n    \"assignedTo\": [\r\n        \"cac117f0-fd65-4d2d-8d4e-cf33f3429cdf\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/tasks/assign",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"tasks",
+								"assign"
 							]
 						}
 					},
@@ -588,7 +621,7 @@
 						"body": {
 							"mode": "graphql",
 							"graphql": {
-								"query": "query {\r\n  tasks {\r\n    id\r\n    title\r\n    description\r\n  }\r\n}\r\n",
+								"query": "query {\r\n  myAssignedTasks {\r\n    id\r\n    title\r\n    description\r\n  }\r\n}\r\n",
 								"variables": ""
 							}
 						},
@@ -874,13 +907,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{BASE_URL}}/notifications/a9d42c3e-761c-49b6-860c-19809bd48c56/read",
+							"raw": "{{BASE_URL}}/notifications/df9fb2b8-6d38-43cd-99a2-2feb70d34779/read",
 							"host": [
 								"{{BASE_URL}}"
 							],
 							"path": [
 								"notifications",
-								"a9d42c3e-761c-49b6-860c-19809bd48c56",
+								"df9fb2b8-6d38-43cd-99a2-2feb70d34779",
 								"read"
 							]
 						}
