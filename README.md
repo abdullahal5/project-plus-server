@@ -29,6 +29,76 @@ A **Collaborative Project Management Tool** built with **NestJS** and **TypeScri
 - **Middleware:** CORS, cookie-parser
 - **Testing:** Jest
 - **Development Tools:** TypeScript, ts-node-dev, ESLint, Prettier
+- **Containerization:** Docker, Docker Compose
+
+---
+
+## Installation
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/abdullahal5/project-plus-server.git
+cd project-plus-server
+
+# Using npm
+npm install
+
+# Using yarn
+yarn install
+
+# Start in development mode
+npm run start:dev
+# or
+yarn start:dev
+
+# Build and start in production mode
+npm run build
+npm run start:prod
+# or
+yarn build
+yarn start:prod
+
+```
+
+### 🐳 Docker Deployment (optional)
+
+> Reminder: Make sure you have a .env file with the required environment variables.
+
+```bash
+
+# Build the Docker image
+docker build -t projectplus-server-app .
+
+# Run the Docker container
+docker run -d -p 5000:5000 --name nest-app-container --env-file .env projectplus-server-app
+
+# Or using Docker Compose
+docker-compose up --build
+
+```
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run unit and integration tests with Jest
+npm run test
+# or
+yarn test
+
+# Run tests in watch mode
+npm run test:watch
+# or
+yarn test:watch
+
+# Run tests and generate coverage report
+npm run test:cov
+# or
+yarn test:cov
+
+```
 
 ---
 
@@ -38,12 +108,12 @@ Create a `.env` file in the root of the project and add the following variables 
 
 ```env
 PORT=5000
-DATABASE_URL="YOUR_DATABASE_URL"
+DATABASE_URL=YOUR_DATABASE_URL
 BCRYPT_ROUND_NUM=8
 JWT_SECRET=super_secret
 ELASTICSEARCH_USERNAME=elastic
 ELASTICSEARCH_PASSWORD=ELASTIC_PASSWORD
-ELASTICSEARCH_NODE=ELASTIC_NODE
+ELASTICSEARCH_NODE=Node
 ```
 
 ---
