@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   Injectable,
@@ -60,20 +59,28 @@ export class TaskService {
 
     // Choose best user to assign the task
     if (autoAssign) {
-      const users = await this.prisma.user.findMany({
+      let user = await this.prisma.user.findFirst({
         where: {
           skills: { hasSome: requiredSkills || [] },
+          role: 'MEMBER',
           isActive: true,
         },
         orderBy: { workload: 'asc' },
       });
 
-      const assignedUserIds = users.map((u) => u.id).slice(0, 1);
+      // Step 2: Fallback → last created MEMBER
+      if (!user) {
+        user = await this.prisma.user.findFirst({
+          where: { role: 'MEMBER', isActive: true },
+          orderBy: { createdAt: 'desc' },
+        });
+      }
 
-      if (assignedUserIds.length > 0) {
+      // Step 3: Assign if we found someone
+      if (user) {
         await this.assignATask({
           taskId: task.id,
-          assignedTo: assignedUserIds,
+          assignedTo: [user.id],
           dependencies: [],
         });
       }
